@@ -1,0 +1,21 @@
+{
+  "name": "crypto",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Crypto service based on Webkit Subtle",
+  "keywords": [],
+  "devDependencies": {
+  },
+  "dependencies": {
+  },
+  "scripts": {
+  },
+  "main": "crypto.js",
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:my-will/crypto.git"
+  },
+  "author": "Eugene Valeyev",
+  "license": "exclusive",
+  "homepage": "https://bitbucket.org/my-will/crypto#readme"
+}
