@@ -8,9 +8,7 @@
   },
   "dependencies": {
   },
-  "scripts": {
-  },
-  "main": "crypto.js",
+  "main": "dist/crypto.min.js",
   "repository": {
     "type": "git",
     "url": "git@bitbucket.org:my-will/crypto.git"
