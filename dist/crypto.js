@@ -261,38 +261,42 @@ class Crypto {
     return this.rsa.importKeys(privateKey, publicKey);
   }
 
+  exportKeys() {
+    return this.rsa.exportKeys();
+  }
+
   encrypt(textData) {
     let encryptedData = null;
     let encryptedKey = null;
-    const textData64 = _encode64(textData);
+    const textData64 = this._encode64(textData);
 
     const promise = this.aes.generateKeys(this.aesLength).then( (aes) => {
       return this.aes.exportKeys();
     }).then( (aes) => {
       return this.aes.encrypt(textData64);
     }).then( (encrypted) => {
-      const key = _composeKeyIV(this.aes.key, this.aes.iv);
+      const key = this._composeKeyIV(this.aes.key, this.aes.iv);
       encryptedData = encrypted;
       return this.rsa.encrypt(key);
     }).then( (encrypted) => {
       encryptedKey = encrypted;
-      return Promise.resolve(_composeEncryptedKeyData(encryptedKey, encryptedData));
+      return Promise.resolve(this._composeEncryptedKeyData(encryptedKey, encryptedData));
     });
     return promise;
   }
 
   decrypt(encryptedTextData) {
-    const encryptedKey = _extractEncryptedKey(encryptedTextData);
-    const encryptedData = _extractEncryptedData(encryptedTextData);
+    const encryptedKey = this._extractEncryptedKey(encryptedTextData);
+    const encryptedData = this._extractEncryptedData(encryptedTextData);
 
     const promise = this.rsa.decrypt(encryptedKey).then( (decryptedKey) => {
-      const aesIV = _extractAESIV(decryptedKey);
-      const aesKey = _extractAESKey(decryptedKey);
+      const aesIV = this._extractAESIV(decryptedKey);
+      const aesKey = this._extractAESKey(decryptedKey);
       return this.aes.importKeys(aesKey, aesIV);
     }).then( (aes) => {
       return this.aes.decrypt(encryptedData);
     }).then( (decrypted64) => {
-      const decrypted = _decode64(decrypted64);
+      const decrypted = this._decode64(decrypted64);
       return Promise.resolve(decrypted);
     });
     return promise;
@@ -308,26 +312,30 @@ class Crypto {
   }
 
   _extractEncryptedKey(keyData) {
-    return keyData.substring(0, 32);
+    const idx = keyData.indexOf(' ');
+    return keyData.substring(0, idx);
   }
 
   _extractEncryptedData(keyData) {
-    return keyData.substring(32);
+    const idx = keyData.indexOf(' ');
+    return keyData.substring(idx + 1);
   }
 
   _composeEncryptedKeyData(key, data) {
-    return key + data;
+    return `${key} ${data}`;
   }
 
   _extractAESIV(key) {
-    return keyData.substring(0, 32);
+    const idx = keyData.indexOf(' ');
+    return keyData.substring(0, idx);
   }
 
   _extractAESKey(key) {
-    return keyData.substring(32);
+    const idx = keyData.indexOf(' ');
+    return keyData.substring(idx + 1);
   }
 
   _composeKeyIV(key, iv) {
-    return iv + key;
+    return `${iv} ${key}`;
   }
 }
