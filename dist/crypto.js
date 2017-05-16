@@ -326,12 +326,12 @@ class Crypto {
   }
 
   _extractAESIV(key) {
-    const idx = keyData.indexOf(' ');
+    const idx = key.indexOf(' ');
     return keyData.substring(0, idx);
   }
 
   _extractAESKey(key) {
-    const idx = keyData.indexOf(' ');
+    const idx = key.indexOf(' ');
     return keyData.substring(idx + 1);
   }
 
