@@ -147,7 +147,7 @@ class CryptoRSA {
 
   generateKeys(modulusLength = 2048) {
     this.modulusLength = modulusLength;
-    const promise = CryptoUtil.crypto().generateKey({
+    const promise = CryptoUtil.subtle().generateKey({
         name: 'RSA-OAEP',
         modulusLength: this.modulusLength,
         publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
@@ -172,9 +172,9 @@ class CryptoRSA {
         return Promise.reject(new Error('there is no one of the keys of one of them is not extractable'));
     }
 
-    const promise = CryptoUtil.crypto().exportKey('jwk', this.cryptoPrivateKey).then( (keydata) => {
+    const promise = CryptoUtil.subtle().exportKey('jwk', this.cryptoPrivateKey).then( (keydata) => {
       this.privateKey = CryptoUtil.arrayBufferToBase64(keydata);
-      return CryptoUtil.crypto().exportKey('jwk', this.cryptoPublicKey);
+      return CryptoUtil.subtle().exportKey('jwk', this.cryptoPublicKey);
     }).then( (keydata) => {
       this.publicKey = CryptoUtil.arrayBufferToBase64(keydata);
       return Promise.resolve(this);
@@ -202,7 +202,7 @@ class CryptoRSA {
   }
 
   encrypt(textData) {
-    const promise = CryptoUtil.crypto().encrypt({
+    const promise = CryptoUtil.subtle().encrypt({
         name: 'RSA-OAEP',
         hash: { name: 'SHA-1' },
       },
@@ -215,7 +215,7 @@ class CryptoRSA {
   }
 
   decrypt(encryptedTextData) {
-    const promise = CryptoUtil.crypto().decrypt({
+    const promise = CryptoUtil.subtle().decrypt({
         name: 'RSA-OAEP',
         hash: { name: 'SHA-1' },
       },
@@ -231,7 +231,7 @@ class CryptoRSA {
   static _importKey(keydata, purpose) {
     if (!keydata) return Promise.resolve(null);
 
-    const promise = CryptoUtil.crypto().importKey(
+    const promise = CryptoUtil.subtle().importKey(
       'jwk',
       keydata,
       {
