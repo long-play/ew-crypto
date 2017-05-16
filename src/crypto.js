@@ -80,12 +80,12 @@ class Crypto {
 
   _extractAESIV(key) {
     const idx = key.indexOf(' ');
-    return keyData.substring(0, idx);
+    return key.substring(0, idx);
   }
 
   _extractAESKey(key) {
     const idx = key.indexOf(' ');
-    return keyData.substring(idx + 1);
+    return key.substring(idx + 1);
   }
 
   _composeKeyIV(key, iv) {
