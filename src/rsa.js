@@ -48,9 +48,9 @@ class CryptoRSA {
     this.publicKey = publicKey;
     const privateKeydata = CryptoUtil.base64ToArrayBuffer(this.privateKey);
     const publicKeydata = CryptoUtil.base64ToArrayBuffer(this.publicKey);
-    const promise = _importKey(privateKeydata, 'decrypt').then( (pk) => {
+    const promise = CryptoRSA._importKey(privateKeydata, 'decrypt').then( (pk) => {
       this.cryptoPrivateKey = pk;
-      return _importKey(publicKeydata, 'encrypt');
+      return CryptoRSA._importKey(publicKeydata, 'encrypt');
     }).then( (pk) => {
       this.cryptoPublicKey = pk;
       return Promise.resolve(this);

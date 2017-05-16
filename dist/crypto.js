@@ -90,7 +90,7 @@ class CryptoAES {
     this.key = key;
     this.iv = iv;
     const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
-    const promise = CryptoUtil.importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+    const promise = CryptoAES._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });
@@ -191,9 +191,9 @@ class CryptoRSA {
     this.publicKey = publicKey;
     const privateKeydata = CryptoUtil.base64ToArrayBuffer(this.privateKey);
     const publicKeydata = CryptoUtil.base64ToArrayBuffer(this.publicKey);
-    const promise = _importKey(privateKeydata, 'decrypt').then( (pk) => {
+    const promise = CryptoRSA._importKey(privateKeydata, 'decrypt').then( (pk) => {
       this.cryptoPrivateKey = pk;
-      return _importKey(publicKeydata, 'encrypt');
+      return CryptoRSA._importKey(publicKeydata, 'encrypt');
     }).then( (pk) => {
       this.cryptoPublicKey = pk;
       return Promise.resolve(this);
