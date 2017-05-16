@@ -247,8 +247,8 @@ class CryptoRSA {
 
 class Crypto {
   constructor(rsaLength = 2048, aesLength = 256) {
-    this.rsa = CryptoRSA();
-    this.aes = CryptoAES();
+    this.rsa = new CryptoRSA();
+    this.aes = new CryptoAES();
     this.rsaLength = rsaLength;
     this.aesLength = aesLength;
   }
