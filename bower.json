@@ -1,5 +1,5 @@
 {
-  "name": "crypto",
+  "name": "wcrypto",
   "private": true,
   "version": "0.0.1",
   "description": "Crypto service based on Webkit Subtle",
@@ -8,7 +8,7 @@
   },
   "dependencies": {
   },
-  "main": "crypto.js",
+  "main": "dist/crypto.min.js",
   "repository": {
     "type": "git",
     "url": "git@bitbucket.org:my-will/crypto.git"
