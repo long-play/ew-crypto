@@ -1,4 +1,4 @@
-class CryptoAES {
+class CryptoAESCBC {
   constructor() {
   }
 
@@ -41,7 +41,7 @@ class CryptoAES {
     this.key = key;
     this.iv = iv;
     const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
-    const promise = CryptoAES._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+    const promise = CryptoAESCBC._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });

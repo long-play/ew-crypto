@@ -1,4 +1,4 @@
-class CryptoAES {
+class CryptoAESGCM {
   constructor() {
   }
 
@@ -6,7 +6,7 @@ class CryptoAES {
     this.length = length;
     this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(16)));
     const promise = CryptoUtil.subtle().generateKey({
-        name: 'AES-CBC',
+        name: 'AES-GCM',
         length: this.length
       },
       true,
@@ -41,17 +41,19 @@ class CryptoAES {
     this.key = key;
     this.iv = iv;
     const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
-    const promise = CryptoAES._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+    const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });
     return promise;
   }
 
-  encrypt(textData) {
+  encrypt(textData, note) {
     const promise = CryptoUtil.subtle().encrypt({
-        name: 'AES-CBC',
-        iv: CryptoUtil.base64ToArrayBuffer(this.iv)
+        name: 'AES-GCM',
+        iv: CryptoUtil.base64ToArrayBuffer(this.iv),
+        additionalData: CryptoUtil.base64ToArrayBuffer(note),
+        tagLength: 128
       },
       this.cryptoKey,
       CryptoUtil.stringToArrayBuffer(textData)
@@ -61,10 +63,12 @@ class CryptoAES {
     return promise;
   }
 
-  decrypt(encryptedTextData) {
+  decrypt(encryptedTextData, note) {
     const promise = CryptoUtil.subtle().decrypt({
-        name: 'AES-CBC',
-        iv: CryptoUtil.base64ToArrayBuffer(this.iv)
+        name: 'AES-GCM',
+        iv: CryptoUtil.base64ToArrayBuffer(this.iv),
+        additionalData: CryptoUtil.base64ToArrayBuffer(note),
+        tagLength: 128
       },
       this.cryptoKey,
       CryptoUtil.base64ToArrayBuffer(encryptedTextData)
@@ -82,7 +86,7 @@ class CryptoAES {
       'jwk',
       keydata,
       {
-        name: 'AES-CBC'
+        name: 'AES-GCM'
       },
       false,
       purposes
