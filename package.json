@@ -7,6 +7,7 @@
   "devDependencies": {
   },
   "dependencies": {
+    "detect-browser": "^1.7.1"
   },
   "scripts": {
   },

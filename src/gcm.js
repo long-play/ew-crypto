@@ -22,7 +22,7 @@ class CryptoAESGCM {
       true,
       ['encrypt', 'decrypt']
     ).then( (key) => {
-      this.cryptoKey = key;
+      this.cryptoKey = CryptoUtil.jsonToBase64(key);
       return Promise.resolve(this);
     });
     return promise;
@@ -30,12 +30,11 @@ class CryptoAESGCM {
 
   createKeyFromHex(hexKey) {
     const key = CryptoAESGCM.createKeyFromHex(hexKey);
-    this.key = window.btoa(JSON.stringify(key));
+    this.key = CryptoUtil.jsonToBase64(key);
     this.length = (hexKey.length / 2) * 8;
     this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
-    const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
 
-    const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+    const promise = CryptoAESGCM._importKey(key, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });
@@ -51,7 +50,7 @@ class CryptoAESGCM {
     }
 
     const promise = CryptoUtil.subtle().exportKey('jwk', this.cryptoKey).then( (keydata) => {
-      this.key = CryptoUtil.arrayBufferToBase64(keydata);
+      this.key = CryptoUtil.jsonToBase64(keydata);
       return Promise.resolve(this);
     });
     return promise;
@@ -64,7 +63,7 @@ class CryptoAESGCM {
 
     this.key = key;
     this.iv = iv;
-    const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
+    const keydata = CryptoUtil.base64ToJson(this.key);
     const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);

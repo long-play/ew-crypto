@@ -1,5 +1,6 @@
 class CryptoUtil {
   constructor() {
+    this._browser = require('detect-browser');
   }
 
   static crypto() {
@@ -7,7 +8,19 @@ class CryptoUtil {
   }
 
   static subtle() {
-    return window.crypto.webkitSubtle;
+    let subtle = null;
+    switch(this._browser && this._browser.name) {
+      case 'chrome':
+      case 'firefox':
+        subtle = window.crypto.subtle;
+        break;
+      case 'safari':
+        subtle = window.crypto.webkitSubtle;
+        break;
+      default:
+        subtle = null;
+    }
+    return subtle;
   }
 
   static arrayBufferToString(buffer) {
@@ -67,5 +80,15 @@ class CryptoUtil {
     let string = base64.replace('+', '-');
     string = string.replace('/', '_');
     return string.replace('=', '');
+  }
+
+  static jsonToBase64(json) {
+    const str = JSON.stringify(json);
+    return window.btoa(str);
+  }
+
+  static base64ToJson(base64) {
+    const str = window.atob(base64);
+    return JSON.parse(str);
   }
 }
