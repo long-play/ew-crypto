@@ -1,6 +1,15 @@
 class CryptoUtil {
   constructor() {
-    this._browser = require('detect-browser');
+  }
+
+  static browser() {
+    if (this._browser == null) {
+      this._browser = require('detect-browser');
+    }
+    if (this._browser == null) {
+      this._browser = { name: 'unknown' };
+    }
+    return this._browser;
   }
 
   static crypto() {
@@ -9,7 +18,7 @@ class CryptoUtil {
 
   static subtle() {
     let subtle = null;
-    switch(this._browser && this._browser.name) {
+    switch(CryptoUtil.browser().name) {
       case 'chrome':
       case 'firefox':
         subtle = window.crypto.subtle;
@@ -21,6 +30,38 @@ class CryptoUtil {
         subtle = null;
     }
     return subtle;
+  }
+
+  static jwkToBase64(jwk) {
+    let key = null;
+    switch(CryptoUtil.browser().name) {
+      case 'chrome':
+      case 'firefox':
+        key = CryptoUtil.jsonToBase64(jwk);
+        break;
+      case 'safari':
+        key = CryptoUtil.arrayBufferToBase64(jwk);
+        break;
+      default:
+        key = null;
+    }
+    return key;
+  }
+
+  static base64ToJwk(key) {
+    let jwk = null;
+    switch(CryptoUtil.browser().name) {
+      case 'chrome':
+      case 'firefox':
+        jwk = CryptoUtil.base64ToJson(key);
+        break;
+      case 'safari':
+        jwk = CryptoUtil.base64ToArrayBuffer(key);
+        break;
+      default:
+        jwk = null;
+    }
+    return jwk;
   }
 
   static arrayBufferToString(buffer) {

@@ -1,6 +1,15 @@
 class CryptoUtil {
   constructor() {
-    this._browser = require('detect-browser');
+  }
+
+  static browser() {
+    if (this._browser == null) {
+      this._browser = require('detect-browser');
+    }
+    if (this._browser == null) {
+      this._browser = { name: 'unknown' };
+    }
+    return this._browser;
   }
 
   static crypto() {
@@ -9,7 +18,7 @@ class CryptoUtil {
 
   static subtle() {
     let subtle = null;
-    switch(this._browser && this._browser.name) {
+    switch(CryptoUtil.browser().name) {
       case 'chrome':
       case 'firefox':
         subtle = window.crypto.subtle;
@@ -21,6 +30,38 @@ class CryptoUtil {
         subtle = null;
     }
     return subtle;
+  }
+
+  static jwkToBase64(jwk) {
+    let key = null;
+    switch(CryptoUtil.browser().name) {
+      case 'chrome':
+      case 'firefox':
+        key = CryptoUtil.jsonToBase64(jwk);
+        break;
+      case 'safari':
+        key = CryptoUtil.arrayBufferToBase64(jwk);
+        break;
+      default:
+        key = null;
+    }
+    return key;
+  }
+
+  static base64ToJwk(key) {
+    let jwk = null;
+    switch(CryptoUtil.browser().name) {
+      case 'chrome':
+      case 'firefox':
+        jwk = CryptoUtil.base64ToJson(key);
+        break;
+      case 'safari':
+        jwk = CryptoUtil.base64ToArrayBuffer(key);
+        break;
+      default:
+        jwk = null;
+    }
+    return jwk;
   }
 
   static arrayBufferToString(buffer) {
@@ -106,7 +147,7 @@ class CryptoAESCBC {
       true,
       ['encrypt', 'decrypt']
     ).then( (key) => {
-      this.cryptoKey = CryptoUtil.jsonToBase64(key);
+      this.cryptoKey = key;
       return Promise.resolve(this);
     });
     return promise;
@@ -121,7 +162,7 @@ class CryptoAESCBC {
     }
 
     const promise = CryptoUtil.subtle().exportKey('jwk', this.cryptoKey).then( (keydata) => {
-      this.key = CryptoUtil.jsonToBase64(keydata);
+      this.key = CryptoUtil.jwkToBase64(keydata);
       return Promise.resolve(this);
     });
     return promise;
@@ -134,7 +175,7 @@ class CryptoAESCBC {
 
     this.key = key;
     this.iv = iv;
-    const keydata = CryptoUtil.base64ToJson(this.key);
+    const keydata = CryptoUtil.base64ToJwk(this.key);
     const promise = CryptoAESCBC._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
@@ -210,7 +251,7 @@ class CryptoAESGCM {
       true,
       ['encrypt', 'decrypt']
     ).then( (key) => {
-      this.cryptoKey = CryptoUtil.jsonToBase64(key);
+      this.cryptoKey = key;
       return Promise.resolve(this);
     });
     return promise;
@@ -238,7 +279,7 @@ class CryptoAESGCM {
     }
 
     const promise = CryptoUtil.subtle().exportKey('jwk', this.cryptoKey).then( (keydata) => {
-      this.key = CryptoUtil.jsonToBase64(keydata);
+      this.key = CryptoUtil.jwkToBase64(keydata);
       return Promise.resolve(this);
     });
     return promise;
@@ -251,7 +292,7 @@ class CryptoAESGCM {
 
     this.key = key;
     this.iv = iv;
-    const keydata = CryptoUtil.base64ToJson(this.key);
+    const keydata = CryptoUtil.base64ToJwk(this.key);
     const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
@@ -505,6 +546,8 @@ class Crypto {
     return `${iv} ${key}`;
   }
 }
+const cu = new CryptoUtil();
+
 exports.AESCBC = CryptoAESCBC;
 exports.AESGCM = CryptoAESGCM;
 exports.RSA = CryptoRSA;

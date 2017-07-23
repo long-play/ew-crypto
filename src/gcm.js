@@ -22,7 +22,7 @@ class CryptoAESGCM {
       true,
       ['encrypt', 'decrypt']
     ).then( (key) => {
-      this.cryptoKey = CryptoUtil.jsonToBase64(key);
+      this.cryptoKey = key;
       return Promise.resolve(this);
     });
     return promise;
@@ -50,7 +50,7 @@ class CryptoAESGCM {
     }
 
     const promise = CryptoUtil.subtle().exportKey('jwk', this.cryptoKey).then( (keydata) => {
-      this.key = CryptoUtil.jsonToBase64(keydata);
+      this.key = CryptoUtil.jwkToBase64(keydata);
       return Promise.resolve(this);
     });
     return promise;
@@ -63,7 +63,7 @@ class CryptoAESGCM {
 
     this.key = key;
     this.iv = iv;
-    const keydata = CryptoUtil.base64ToJson(this.key);
+    const keydata = CryptoUtil.base64ToJwk(this.key);
     const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
