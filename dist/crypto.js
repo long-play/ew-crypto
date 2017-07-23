@@ -46,8 +46,30 @@ class CryptoUtil {
     const binaryString = window.atob(base64);
     return CryptoUtil.stringToArrayBuffer(binaryString);
   }
+
+  static hexToBase64u(hex) {
+    if (!hex) return null;
+
+    const binaryString = CryptoUtil.hexToString(hex);
+    const base64 = window.btoa(binaryString);
+    return CryptoUtil.base64toBase64u(base64);
+  }
+
+  static hexToString(hex) {
+    let string = '';
+    for (let i = 0; i < hex.length; i += 2) {
+      string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return string;
+  }
+
+  static base64toBase64u(base64) {
+    let string = base64.replace('+', '-');
+    string = string.replace('/', '_');
+    return string.replace('=', '');
+  }
 }
-class CryptoAES {
+class CryptoAESCBC {
   constructor() {
   }
 
@@ -90,7 +112,7 @@ class CryptoAES {
     this.key = key;
     this.iv = iv;
     const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
-    const promise = CryptoAES._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+    const promise = CryptoAESCBC._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });
@@ -132,6 +154,128 @@ class CryptoAES {
       keydata,
       {
         name: 'AES-CBC'
+      },
+      false,
+      purposes
+    );
+    return promise;
+  }
+
+}
+
+class CryptoAESGCM {
+  constructor() {
+  }
+
+  static createKeyFromHex(hexKey) {
+    const key = {
+      kty: 'oct',
+      k: CryptoUtil.hexToBase64u(hexKey),
+      alg: 'A256GCM',
+      ext: true
+    };
+    return key;
+  }
+
+  generateKeys(length = 256) {
+    this.length = length;
+    this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
+    const promise = CryptoUtil.subtle().generateKey({
+        name: 'AES-GCM',
+        length: this.length
+      },
+      true,
+      ['encrypt', 'decrypt']
+    ).then( (key) => {
+      this.cryptoKey = key;
+      return Promise.resolve(this);
+    });
+    return promise;
+  }
+
+  createKeyFromHex(hexKey) {
+    const key = CryptoAESGCM.createKeyFromHex(hexKey);
+    this.key = window.btoa(JSON.stringify(key));
+    this.length = (hexKey.length / 2) * 8;
+    this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
+    const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
+
+    const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+      this.cryptoKey = pk;
+      return Promise.resolve(this);
+    });
+    return promise;
+  }
+
+  exportKeys() {
+    if (!this.cryptoKey ||
+        this.cryptoKey.extractable !== true ||
+        !this.iv) {
+        // there is no one of the keys extractable
+        return Promise.reject(new Error('there is no extractable key or IV'));
+    }
+
+    const promise = CryptoUtil.subtle().exportKey('jwk', this.cryptoKey).then( (keydata) => {
+      this.key = CryptoUtil.arrayBufferToBase64(keydata);
+      return Promise.resolve(this);
+    });
+    return promise;
+  }
+
+  importKeys(key, iv) {
+    if (!key || !iv) {
+        return Promise.reject('empty key or initial vector are not allowed');
+    }
+
+    this.key = key;
+    this.iv = iv;
+    const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
+    const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+      this.cryptoKey = pk;
+      return Promise.resolve(this);
+    });
+    return promise;
+  }
+
+  encrypt(textData, note) {
+    const promise = CryptoUtil.subtle().encrypt({
+        name: 'AES-GCM',
+        iv: CryptoUtil.base64ToArrayBuffer(this.iv),
+        additionalData: CryptoUtil.base64ToArrayBuffer(note),
+        tagLength: 128
+      },
+      this.cryptoKey,
+      CryptoUtil.stringToArrayBuffer(textData)
+    ).then( (encryptedBuffer) => {
+      return Promise.resolve(CryptoUtil.arrayBufferToBase64(encryptedBuffer));
+    });
+    return promise;
+  }
+
+  decrypt(encryptedTextData, note) {
+    const promise = CryptoUtil.subtle().decrypt({
+        name: 'AES-GCM',
+        iv: CryptoUtil.base64ToArrayBuffer(this.iv),
+        additionalData: CryptoUtil.base64ToArrayBuffer(note),
+        tagLength: 128
+      },
+      this.cryptoKey,
+      CryptoUtil.base64ToArrayBuffer(encryptedTextData)
+    ).then( (decryptedBuffer) => {
+      return Promise.resolve(CryptoUtil.arrayBufferToString(decryptedBuffer));
+    });
+    return promise;
+  }
+
+  // private methods
+  static _importKey(keydata, purposes) {
+    if (!keydata) return Promise.resolve(null);
+
+    const promise = CryptoUtil.subtle().importKey(
+      'jwk',
+      keydata,
+      {
+        name: 'AES-GCM'
       },
       false,
       purposes
@@ -339,6 +483,7 @@ class Crypto {
     return `${iv} ${key}`;
   }
 }
-exports.AES = CryptoAES;
+exports.AESCBC = CryptoAESCBC;
+exports.AESGCM = CryptoAESGCM;
 exports.RSA = CryptoRSA;
 exports.Util = CryptoUtil;

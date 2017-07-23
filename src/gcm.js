@@ -2,9 +2,19 @@ class CryptoAESGCM {
   constructor() {
   }
 
+  static createKeyFromHex(hexKey) {
+    const key = {
+      kty: 'oct',
+      k: CryptoUtil.hexToBase64u(hexKey),
+      alg: 'A256GCM',
+      ext: true
+    };
+    return key;
+  }
+
   generateKeys(length = 256) {
     this.length = length;
-    this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(16)));
+    this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
     const promise = CryptoUtil.subtle().generateKey({
         name: 'AES-GCM',
         length: this.length
@@ -13,6 +23,20 @@ class CryptoAESGCM {
       ['encrypt', 'decrypt']
     ).then( (key) => {
       this.cryptoKey = key;
+      return Promise.resolve(this);
+    });
+    return promise;
+  }
+
+  createKeyFromHex(hexKey) {
+    const key = CryptoAESGCM.createKeyFromHex(hexKey);
+    this.key = window.btoa(JSON.stringify(key));
+    this.length = (hexKey.length / 2) * 8;
+    this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
+    const keydata = CryptoUtil.base64ToArrayBuffer(this.key);
+
+    const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
+      this.cryptoKey = pk;
       return Promise.resolve(this);
     });
     return promise;

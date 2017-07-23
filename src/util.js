@@ -46,4 +46,26 @@ class CryptoUtil {
     const binaryString = window.atob(base64);
     return CryptoUtil.stringToArrayBuffer(binaryString);
   }
+
+  static hexToBase64u(hex) {
+    if (!hex) return null;
+
+    const binaryString = CryptoUtil.hexToString(hex);
+    const base64 = window.btoa(binaryString);
+    return CryptoUtil.base64toBase64u(base64);
+  }
+
+  static hexToString(hex) {
+    let string = '';
+    for (let i = 0; i < hex.length; i += 2) {
+      string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return string;
+  }
+
+  static base64toBase64u(base64) {
+    let string = base64.replace('+', '-');
+    string = string.replace('/', '_');
+    return string.replace('=', '');
+  }
 }
