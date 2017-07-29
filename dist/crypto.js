@@ -101,11 +101,24 @@ class CryptoUtil {
     return CryptoUtil.stringToArrayBuffer(binaryString);
   }
 
-  static hexToBase64u(hex) {
+  static hexToBase64(hex) {
     if (!hex) return null;
 
     const binaryString = CryptoUtil.hexToString(hex);
-    const base64 = window.btoa(binaryString);
+    return window.btoa(binaryString);
+  }
+
+  static base64ToHex(base64) {
+    if (!base64) return null;
+
+    const binaryString = window.atob(base64);
+    return CryptoUtil.stringToHex(binaryString);
+  }
+
+  static hexToBase64u(hex) {
+    if (!hex) return null;
+
+    const base64 = CryptoUtil.hexToBase64(hex);
     return CryptoUtil.base64toBase64u(base64);
   }
 
@@ -115,6 +128,14 @@ class CryptoUtil {
       string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
     }
     return string;
+  }
+
+  static stringToHex(string) {
+    let hex = '';
+    for (let i = 0; i < string.length; i++) {
+      hex += ('' + string.charCodeAt(i).toString(16));
+    }
+    return hex;
   }
 
   static base64toBase64u(base64) {
@@ -148,6 +169,23 @@ class CryptoAESCBC {
       ['encrypt', 'decrypt']
     ).then( (key) => {
       this.cryptoKey = key;
+      return Promise.resolve(this);
+    });
+    return promise;
+  }
+
+  createKeyFromHex(hexKey, iv) {
+    const key = CryptoAESCBC._createKeyFromHex(hexKey);
+    this.key = CryptoUtil.jsonToBase64(key);
+    this.length = (hexKey.length / 2) * 8;
+    if (iv) {
+      this.iv = CryptoUtil.hexToBase64(iv);
+    } else {
+      this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
+    }
+
+    const promise = CryptoAESCBC._importKey(key, ['encrypt', 'decrypt']).then( (pk) => {
+      this.cryptoKey = pk;
       return Promise.resolve(this);
     });
     return promise;
@@ -210,6 +248,16 @@ class CryptoAESCBC {
   }
 
   // private methods
+  static _createKeyFromHex(hexKey) {
+    const key = {
+      kty: 'oct',
+      k: CryptoUtil.hexToBase64u(hexKey),
+      alg: 'A256CBC',
+      ext: true
+    };
+    return key;
+  }
+
   static _importKey(keydata, purposes) {
     if (!keydata) return Promise.resolve(null);
 
