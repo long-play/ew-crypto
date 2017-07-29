@@ -119,7 +119,7 @@ class CryptoUtil {
     if (!hex) return null;
 
     const base64 = CryptoUtil.hexToBase64(hex);
-    return CryptoUtil.base64toBase64u(base64);
+    return CryptoUtil.base64ToBase64u(base64);
   }
 
   static hexToString(hex) {
@@ -138,10 +138,10 @@ class CryptoUtil {
     return hex;
   }
 
-  static base64toBase64u(base64) {
-    let string = base64.replace('+', '-');
-    string = string.replace('/', '_');
-    return string.replace('=', '');
+  static base64ToBase64u(base64) {
+    let string = base64.replace(/\+/g, '-');
+    string = string.replace(/\//g, '_');
+    return string.replace(/=/g, '');
   }
 
   static jsonToBase64(json) {
@@ -251,6 +251,7 @@ class CryptoAESCBC {
   static _createKeyFromHex(hexKey) {
     const key = {
       kty: 'oct',
+      key_ops: ['encrypt', 'decrypt'],
       k: CryptoUtil.hexToBase64u(hexKey),
       alg: 'A256CBC',
       ext: true

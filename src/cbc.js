@@ -95,6 +95,7 @@ class CryptoAESCBC {
   static _createKeyFromHex(hexKey) {
     const key = {
       kty: 'oct',
+      key_ops: ['encrypt', 'decrypt'],
       k: CryptoUtil.hexToBase64u(hexKey),
       alg: 'A256CBC',
       ext: true
