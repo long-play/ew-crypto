@@ -18,6 +18,23 @@ class CryptoAESCBC {
     return promise;
   }
 
+  createKeyFromHex(hexKey, iv) {
+    const key = CryptoAESCBC._createKeyFromHex(hexKey);
+    this.key = CryptoUtil.jsonToBase64(key);
+    this.length = (hexKey.length / 2) * 8;
+    if (iv) {
+      this.iv = CryptoUtil.hexToBase64(iv);
+    } else {
+      this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
+    }
+
+    const promise = CryptoAESCBC._importKey(key, ['encrypt', 'decrypt']).then( (pk) => {
+      this.cryptoKey = pk;
+      return Promise.resolve(this);
+    });
+    return promise;
+  }
+
   exportKeys() {
     if (!this.cryptoKey ||
         this.cryptoKey.extractable !== true ||
@@ -75,6 +92,16 @@ class CryptoAESCBC {
   }
 
   // private methods
+  static _createKeyFromHex(hexKey) {
+    const key = {
+      kty: 'oct',
+      k: CryptoUtil.hexToBase64u(hexKey),
+      alg: 'A256CBC',
+      ext: true
+    };
+    return key;
+  }
+
   static _importKey(keydata, purposes) {
     if (!keydata) return Promise.resolve(null);
 

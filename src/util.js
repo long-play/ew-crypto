@@ -101,11 +101,24 @@ class CryptoUtil {
     return CryptoUtil.stringToArrayBuffer(binaryString);
   }
 
-  static hexToBase64u(hex) {
+  static hexToBase64(hex) {
     if (!hex) return null;
 
     const binaryString = CryptoUtil.hexToString(hex);
-    const base64 = window.btoa(binaryString);
+    return window.btoa(binaryString);
+  }
+
+  static base64ToHex(base64) {
+    if (!base64) return null;
+
+    const binaryString = window.atob(base64);
+    return CryptoUtil.stringToHex(binaryString);
+  }
+
+  static hexToBase64u(hex) {
+    if (!hex) return null;
+
+    const base64 = CryptoUtil.hexToBase64(hex);
     return CryptoUtil.base64toBase64u(base64);
   }
 
@@ -115,6 +128,14 @@ class CryptoUtil {
       string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
     }
     return string;
+  }
+
+  static stringToHex(string) {
+    let hex = '';
+    for (let i = 0; i < string.length; i++) {
+      hex += ('' + string.charCodeAt(i).toString(16));
+    }
+    return hex;
   }
 
   static base64toBase64u(base64) {
