@@ -34,7 +34,8 @@ class CryptoAESGCM {
     this.length = (hexKey.length / 2) * 8;
     this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
 
-    const promise = CryptoAESGCM._importKey(key, ['encrypt', 'decrypt']).then( (pk) => {
+    const keydata = CryptoUtil.base64ToJwk(this.key);
+    const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });

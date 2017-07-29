@@ -181,10 +181,11 @@ class CryptoAESCBC {
     if (iv) {
       this.iv = CryptoUtil.hexToBase64(iv);
     } else {
-      this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
+      this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(16)));
     }
 
-    const promise = CryptoAESCBC._importKey(key, ['encrypt', 'decrypt']).then( (pk) => {
+    const keydata = CryptoUtil.base64ToJwk(this.key);
+    const promise = CryptoAESCBC._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });
@@ -251,7 +252,6 @@ class CryptoAESCBC {
   static _createKeyFromHex(hexKey) {
     const key = {
       kty: 'oct',
-      key_ops: ['encrypt', 'decrypt'],
       k: CryptoUtil.hexToBase64u(hexKey),
       alg: 'A256CBC',
       ext: true
@@ -312,7 +312,8 @@ class CryptoAESGCM {
     this.length = (hexKey.length / 2) * 8;
     this.iv = CryptoUtil.arrayBufferToBase64(CryptoUtil.crypto().getRandomValues(new Uint8Array(12)));
 
-    const promise = CryptoAESGCM._importKey(key, ['encrypt', 'decrypt']).then( (pk) => {
+    const keydata = CryptoUtil.base64ToJwk(this.key);
+    const promise = CryptoAESGCM._importKey(keydata, ['encrypt', 'decrypt']).then( (pk) => {
       this.cryptoKey = pk;
       return Promise.resolve(this);
     });
