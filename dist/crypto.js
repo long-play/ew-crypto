@@ -133,7 +133,7 @@ class CryptoUtil {
   static stringToHex(string) {
     let hex = '';
     for (let i = 0; i < string.length; i++) {
-      hex += ('' + string.charCodeAt(i).toString(16));
+      hex += ('0' + string.charCodeAt(i).toString(16)).slice(-2);
     }
     return hex;
   }
