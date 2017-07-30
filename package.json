@@ -7,7 +7,10 @@
   "devDependencies": {
   },
   "dependencies": {
-    "detect-browser": "^1.7.1"
+    "detect-browser": "^1.7.1",
+    "bn.js": "^4.11.3",
+    "create-hash": "^1.1.2",
+    "elliptic": "^6.2.3"
   },
   "scripts": {
   },
