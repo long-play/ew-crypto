@@ -10,6 +10,9 @@ class WCrypto {
   }
 
   encrypt(msg, privKeyFrom, pubKeyTo) {
+    if (privKeyFrom.slice(0, 2) === '0x') privKeyFrom = privKeyFrom.slice(2);
+    if (pubKeyTo.slice(0, 2) === '0x') pubKeyTo = pubKeyTo.slice(2);
+
     const privateKeyFrom = this._privateKeyCreateFromHex(privKeyFrom);
     const publicKeyFrom = this._getPublicKeyFromPrivate(privKeyFrom);
     const publicKeyTo = this._getPublicKey(pubKeyTo);
@@ -22,6 +25,9 @@ class WCrypto {
   }
 
   decrypt(msg, privKeyTo, pubKeyFrom, iv) {
+    if (privKeyTo.slice(0, 2) === '0x') privKeyTo = privKeyTo.slice(2);
+    if (pubKeyFrom.slice(0, 2) === '0x') pubKeyFrom = pubKeyFrom.slice(2);
+
     const privateKeyTo = this._privateKeyCreateFromHex(privKeyTo);
     const publicKeyTo = this._getPublicKeyFromPrivate(privKeyTo);
     const publicKeyFrom = this._getPublicKey(pubKeyFrom);
