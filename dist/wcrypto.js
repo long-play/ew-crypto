@@ -21,9 +21,10 @@ class CryptoUtil {
     switch(CryptoUtil.browser().name) {
       case 'chrome':
       case 'firefox':
+      case 'safari':
         subtle = window.crypto.subtle;
         break;
-      case 'safari':
+      case 'safari-old':
         subtle = window.crypto.webkitSubtle;
         break;
       default:
@@ -37,9 +38,10 @@ class CryptoUtil {
     switch(CryptoUtil.browser().name) {
       case 'chrome':
       case 'firefox':
+      case 'safari':
         key = CryptoUtil.jsonToBase64(jwk);
         break;
-      case 'safari':
+      case 'safari-old':
         key = CryptoUtil.arrayBufferToBase64(jwk);
         break;
       default:
@@ -53,9 +55,10 @@ class CryptoUtil {
     switch(CryptoUtil.browser().name) {
       case 'chrome':
       case 'firefox':
+      case 'safari':
         jwk = CryptoUtil.base64ToJson(key);
         break;
-      case 'safari':
+      case 'safari-old':
         jwk = CryptoUtil.base64ToArrayBuffer(key);
         break;
       default:
