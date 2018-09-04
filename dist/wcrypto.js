@@ -37,7 +37,12 @@ class CryptoUtil {
   }
 
   static hexToBuffer(hex) {
-    return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    return new Uint8Array(CryptoUtil.trimHex(hex).match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+  }
+
+  static trimHex(hex) {
+    if (hex.slice(0, 2) == '0x') hex = hex.slice(2);
+    return hex;
   }
 }
 
@@ -62,10 +67,8 @@ class CryptoAESGCM {
   }
 
   exportKey() {
-    if (!this._cryptoKey ||
-        this._cryptoKey.extractable !== true) {
-        // there is no one of the keys extractable
-        return Promise.reject(new Error('there is no extractable key or IV'));
+    if (!this._cryptoKey || this._cryptoKey.extractable !== true) {
+        return Promise.reject(new Error('there is no extractable key'));
     }
 
     const promise = this._util.subtle.exportKey('raw', this._cryptoKey).then( (keydata) => {
@@ -76,14 +79,20 @@ class CryptoAESGCM {
 
   importKey(key) {
     if (!key) {
-        return Promise.reject('empty key or initial vector are not allowed');
+      return Promise.reject('empty key or initial vector are not allowed');
     }
-    //todo: check the key and iv are hex string or ArrayBuffer of appropriate length
 
-    const keydata = key; // or convert if hex string
+    if (typeof key === 'string') {
+      key = CryptoUtil.hexToBuffer(key);
+    }
+
+    if (key.length !== 32) {
+      return Promise.reject('key has the wrong length');
+    }
+
     const promise = this._util.subtle.importKey(
         'raw',
-        keydata,
+        key,
         { name: 'AES-GCM' },
         false,
         ['encrypt', 'decrypt']
@@ -96,10 +105,19 @@ class CryptoAESGCM {
   }
 
   encrypt(plaintext, note) {
-    //todo; check if cryptoKey exist
-    //todo: check if plaintext is ArrayBuffer or convert it if hex string
-    const iv = this._util.crypto.getRandomValues(new Uint8Array(12));
+    if (!this._cryptoKey) {
+      return Promise.reject('Crypto key is not initialized');
+    }
 
+    if (typeof plaintext === 'string') {
+      plaintext = CryptoUtil.hexToBuffer(plaintext);
+    }
+
+    if (typeof note === 'string') {
+      note = CryptoUtil.hexToBuffer(note);
+    }
+
+    const iv = this._util.crypto.getRandomValues(new Uint8Array(12));
     const promise = this._util.subtle.encrypt({
         name: 'AES-GCM',
         iv: iv,
@@ -113,16 +131,32 @@ class CryptoAESGCM {
         ciphertext,
         iv: iv
       };
-      //todo: debug
-      console.log(this._util.bufferToHex(ciphertext));
       return Promise.resolve(encrypted);
     });
     return promise;
   }
 
   decrypt(ciphertext, iv, note) {
-    //todo; check if cryptoKey exist
-    //todo: check if ciphertext and note are ArrayBuffer or convert it if hex string
+    if (!this._cryptoKey) {
+      return Promise.reject('Crypto key is not initialized');
+    }
+
+    if (typeof ciphertext === 'string') {
+      ciphertext = CryptoUtil.hexToBuffer(ciphertext);
+    }
+
+    if (typeof iv === 'string') {
+      iv = CryptoUtil.hexToBuffer(iv);
+    }
+
+    if (iv.length !== 12) {
+      return Promise.reject('IV has the wrong length');
+    }
+
+    if (typeof note === 'string') {
+      note = CryptoUtil.hexToBuffer(note);
+    }
+
     const promise = this._util.subtle.decrypt({
         name: 'AES-GCM',
         iv: iv,
@@ -151,8 +185,8 @@ class WCrypto {
   }
 
   encrypt(msg, privKeyFrom, pubKeyTo, note) {
-    if (privKeyFrom.slice(0, 2) === '0x') privKeyFrom = privKeyFrom.slice(2);
-    if (pubKeyTo.slice(0, 2) === '0x') pubKeyTo = pubKeyTo.slice(2);
+    privKeyFrom = CryptoUtil.trimHex(privKeyFrom);
+    pubKeyTo = CryptoUtil.trimHex(pubKeyTo);
 
     const privateKeyFrom = this._privateKeyCreateFromHex(privKeyFrom);
     const publicKeyFrom = this._getPublicKeyFromPrivate(privKeyFrom);
@@ -164,8 +198,8 @@ class WCrypto {
   }
 
   decrypt(msg, privKeyTo, pubKeyFrom, iv, note) {
-    if (privKeyTo.slice(0, 2) === '0x') privKeyTo = privKeyTo.slice(2);
-    if (pubKeyFrom.slice(0, 2) === '0x') pubKeyFrom = pubKeyFrom.slice(2);
+    privKeyTo = CryptoUtil.trimHex(privKeyTo);
+    pubKeyFrom = CryptoUtil.trimHex(pubKeyFrom);
 
     const privateKeyTo = this._privateKeyCreateFromHex(privKeyTo);
     const publicKeyTo = this._getPublicKeyFromPrivate(privKeyTo);

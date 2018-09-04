@@ -37,6 +37,11 @@ class CryptoUtil {
   }
 
   static hexToBuffer(hex) {
-    return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    return new Uint8Array(CryptoUtil.trimHex(hex).match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+  }
+
+  static trimHex(hex) {
+    if (hex.slice(0, 2) == '0x') hex = hex.slice(2);
+    return hex;
   }
 }
