@@ -1,5 +1,3 @@
-exports.AESCBC = CryptoAESCBC;
-exports.AESGCM = CryptoAESGCM;
-exports.RSA = CryptoRSA;
 exports.Util = CryptoUtil;
+exports.AESGCM = CryptoAESGCM;
 exports.WCrypto = WCrypto;

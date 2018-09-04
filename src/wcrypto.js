@@ -9,7 +9,7 @@ class WCrypto {
   constructor() {
   }
 
-  encrypt(msg, privKeyFrom, pubKeyTo) {
+  encrypt(msg, privKeyFrom, pubKeyTo, note) {
     if (privKeyFrom.slice(0, 2) === '0x') privKeyFrom = privKeyFrom.slice(2);
     if (pubKeyTo.slice(0, 2) === '0x') pubKeyTo = pubKeyTo.slice(2);
 
@@ -19,12 +19,10 @@ class WCrypto {
 
     const Px = this._derive(publicKeyTo, privateKeyFrom);
     const hash = this._sha256(Px);
-    const encrypted = this._aesEncrypt(msg, hash.toString('hex'));
-    //const encrypted = 'aes256gcm.encrypt(iv, hash, msg)';
-    return encrypted;
+    return this._aesEncrypt(msg, hash.toString('hex'), note);
   }
 
-  decrypt(msg, privKeyTo, pubKeyFrom, iv) {
+  decrypt(msg, privKeyTo, pubKeyFrom, iv, note) {
     if (privKeyTo.slice(0, 2) === '0x') privKeyTo = privKeyTo.slice(2);
     if (pubKeyFrom.slice(0, 2) === '0x') pubKeyFrom = pubKeyFrom.slice(2);
 
@@ -34,32 +32,25 @@ class WCrypto {
 
     const Px = this._derive(publicKeyFrom, privateKeyTo);
     const hash = this._sha256(Px);
-    const decrypted = this._aesDecrypt(msg, hash.toString('hex'), iv);
-    //const decrypted = 'aes256gcm.decrypt(iv, hash, msg)';
-    return decrypted;
+    return this._aesDecrypt(msg, hash.toString('hex'), iv, note);
   }
 
   // private functions
-  _aesEncrypt(msg, key) {
-    const aes = new CryptoAESCBC();
-    const promise = aes.createKeyFromHex(key).then( (aes) => {
-      console.log('key: ' + aes.key);
-      console.log('iv: ' + aes.iv);
-      return aes.encrypt(msg);
+  _aesEncrypt(msg, key, note) {
+    const aes = new CryptoAESGCM();
+    const promise = aes.importKey(key).then( (aes) => {
+      return aes.encrypt(msg, note);
     }).then( (encrypted) => {
-      console.log('encr: ' + encrypted);
-      return Promise.resolve({ encrypted: encrypted, iv: aes.iv });
+      console.log('enc: ' + JSON.stringify(encrypted));
+      return Promise.resolve(encrypted);
     });
     return promise;
   }
 
-  _aesDecrypt(msg, key, iv) {
-    const aes = new CryptoAESCBC();
-    const hexIV = CryptoUtil.base64ToHex(iv);
-    const promise = aes.createKeyFromHex(key, hexIV).then( (aes) => {
-      console.log('key: ' + aes.key);
-      console.log('iv: ' + aes.iv);
-      return aes.decrypt(msg);
+  _aesDecrypt(msg, key, iv, note) {
+    const aes = new CryptoAESGCM();
+    const promise = aes.importKey(key).then( (aes) => {
+      return aes.decrypt(msg, iv, note);
     }).then( (decrypted) => {
       console.log('decr: ' + decrypted);
       return Promise.resolve(decrypted);

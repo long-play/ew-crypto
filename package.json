@@ -2,16 +2,23 @@
   "name": "wcrypto",
   "description": "Crypto service based on Webkit Subtle",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "keywords": [],
-  "devDependencies": {},
-  "dependencies": {
-    "bn.js": "^4.11.3",
-    "create-hash": "^1.1.2",
-    "detect-browser": "^1.12.0",
-    "elliptic": "^6.2.3"
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^1.4.0",
+    "gulp-uglify-es": "^1.0.4",
+    "run-sequence": "^2.2.1"
   },
-  "scripts": {},
+  "dependencies": {
+    "bn.js": "^4.11.8",
+    "create-hash": "^1.2.0",
+    "elliptic": "^6.4.1"
+  },
+  "scripts": {
+    "build": "gulp build"
+  },
   "main": "dist/wcrypto.js",
   "repository": {
     "type": "git",
