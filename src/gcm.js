@@ -79,6 +79,7 @@ class CryptoAESGCM {
       this._cryptoKey,
       plaintext
     ).then( (ciphertext) => {
+      ciphertext = new Uint8Array(ciphertext);
       const encrypted = {
         ciphertext,
         iv: iv
@@ -118,6 +119,7 @@ class CryptoAESGCM {
       this._cryptoKey,
       ciphertext
     ).then( (plaintext) => {
+      plaintext = new Uint8Array(plaintext);
       return Promise.resolve(plaintext);
     });
     return promise;

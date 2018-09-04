@@ -41,7 +41,6 @@ class WCrypto {
     const promise = aes.importKey(key).then( (aes) => {
       return aes.encrypt(msg, note);
     }).then( (encrypted) => {
-      console.log('enc: ' + JSON.stringify(encrypted));
       return Promise.resolve(encrypted);
     });
     return promise;
@@ -52,7 +51,6 @@ class WCrypto {
     const promise = aes.importKey(key).then( (aes) => {
       return aes.decrypt(msg, iv, note);
     }).then( (decrypted) => {
-      console.log('decr: ' + decrypted);
       return Promise.resolve(decrypted);
     });
     return promise;

@@ -33,7 +33,7 @@ class CryptoUtil {
   }
 
   static bufferToHex(buffer) {
-    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+    return '0x' + Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
   }
 
   static hexToBuffer(hex) {
@@ -127,6 +127,7 @@ class CryptoAESGCM {
       this._cryptoKey,
       plaintext
     ).then( (ciphertext) => {
+      ciphertext = new Uint8Array(ciphertext);
       const encrypted = {
         ciphertext,
         iv: iv
@@ -166,6 +167,7 @@ class CryptoAESGCM {
       this._cryptoKey,
       ciphertext
     ).then( (plaintext) => {
+      plaintext = new Uint8Array(plaintext);
       return Promise.resolve(plaintext);
     });
     return promise;
@@ -216,7 +218,6 @@ class WCrypto {
     const promise = aes.importKey(key).then( (aes) => {
       return aes.encrypt(msg, note);
     }).then( (encrypted) => {
-      console.log('enc: ' + JSON.stringify(encrypted));
       return Promise.resolve(encrypted);
     });
     return promise;
@@ -227,7 +228,6 @@ class WCrypto {
     const promise = aes.importKey(key).then( (aes) => {
       return aes.decrypt(msg, iv, note);
     }).then( (decrypted) => {
-      console.log('decr: ' + decrypted);
       return Promise.resolve(decrypted);
     });
     return promise;
