@@ -56,7 +56,7 @@ class CryptoAESGCM {
     return promise;
   }
 
-  encrypt(plaintext, note) {
+  encrypt(plaintext, note, iv = null) {
     if (!this._cryptoKey) {
       return Promise.reject('Crypto key is not initialized');
     }
@@ -69,7 +69,18 @@ class CryptoAESGCM {
       note = CryptoUtil.hexToBuffer(note);
     }
 
-    const iv = this._util.crypto.getRandomValues(new Uint8Array(12));
+    if (iv === null) {
+      iv = this._util.crypto.getRandomValues(new Uint8Array(12));
+    }
+
+    if (typeof iv === 'string') {
+      iv = CryptoUtil.hexToBuffer(iv);
+    }
+
+    if (iv.length !== 12) {
+      return Promise.reject('IV has the wrong length');
+    }
+
     const promise = this._util.subtle.encrypt({
         name: 'AES-GCM',
         iv: iv,

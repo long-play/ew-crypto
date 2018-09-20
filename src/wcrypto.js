@@ -19,10 +19,11 @@ class WCrypto {
 
     const Px = this._derive(publicKeyTo, privateKeyFrom);
     const hash = this._sha256(Px);
-    return this._aesEncrypt(msg, hash.toString('hex'), note);
+    const iv = this._sha256(hash).toString('hex').slice(-24);
+    return this._aesEncrypt(msg, hash.toString('hex'), iv, note);
   }
 
-  decrypt(msg, privKeyTo, pubKeyFrom, iv, note) {
+  decrypt(msg, privKeyTo, pubKeyFrom, note, iv = null) {
     privKeyTo = CryptoUtil.trimHex(privKeyTo);
     pubKeyFrom = CryptoUtil.trimHex(pubKeyFrom);
 
@@ -32,14 +33,17 @@ class WCrypto {
 
     const Px = this._derive(publicKeyFrom, privateKeyTo);
     const hash = this._sha256(Px);
+    if (iv === null) {
+      iv = this._sha256(hash).toString('hex').slice(-24);
+    }
     return this._aesDecrypt(msg, hash.toString('hex'), iv, note);
   }
 
   // private functions
-  _aesEncrypt(msg, key, note) {
+  _aesEncrypt(msg, key, iv, note) {
     const aes = new CryptoAESGCM();
     const promise = aes.importKey(key).then( (aes) => {
-      return aes.encrypt(msg, note);
+      return aes.encrypt(msg, note, iv);
     }).then( (encrypted) => {
       return Promise.resolve(encrypted);
     });

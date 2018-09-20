@@ -104,7 +104,7 @@ class CryptoAESGCM {
     return promise;
   }
 
-  encrypt(plaintext, note) {
+  encrypt(plaintext, note, iv = null) {
     if (!this._cryptoKey) {
       return Promise.reject('Crypto key is not initialized');
     }
@@ -117,7 +117,18 @@ class CryptoAESGCM {
       note = CryptoUtil.hexToBuffer(note);
     }
 
-    const iv = this._util.crypto.getRandomValues(new Uint8Array(12));
+    if (iv === null) {
+      iv = this._util.crypto.getRandomValues(new Uint8Array(12));
+    }
+
+    if (typeof iv === 'string') {
+      iv = CryptoUtil.hexToBuffer(iv);
+    }
+
+    if (iv.length !== 12) {
+      return Promise.reject('IV has the wrong length');
+    }
+
     const promise = this._util.subtle.encrypt({
         name: 'AES-GCM',
         iv: iv,
@@ -196,10 +207,11 @@ class WCrypto {
 
     const Px = this._derive(publicKeyTo, privateKeyFrom);
     const hash = this._sha256(Px);
-    return this._aesEncrypt(msg, hash.toString('hex'), note);
+    const iv = this._sha256(hash).toString('hex').slice(-24);
+    return this._aesEncrypt(msg, hash.toString('hex'), iv, note);
   }
 
-  decrypt(msg, privKeyTo, pubKeyFrom, iv, note) {
+  decrypt(msg, privKeyTo, pubKeyFrom, note, iv = null) {
     privKeyTo = CryptoUtil.trimHex(privKeyTo);
     pubKeyFrom = CryptoUtil.trimHex(pubKeyFrom);
 
@@ -209,14 +221,17 @@ class WCrypto {
 
     const Px = this._derive(publicKeyFrom, privateKeyTo);
     const hash = this._sha256(Px);
+    if (iv === null) {
+      iv = this._sha256(hash).toString('hex').slice(-24);
+    }
     return this._aesDecrypt(msg, hash.toString('hex'), iv, note);
   }
 
   // private functions
-  _aesEncrypt(msg, key, note) {
+  _aesEncrypt(msg, key, iv, note) {
     const aes = new CryptoAESGCM();
     const promise = aes.importKey(key).then( (aes) => {
-      return aes.encrypt(msg, note);
+      return aes.encrypt(msg, note, iv);
     }).then( (encrypted) => {
       return Promise.resolve(encrypted);
     });
