@@ -1,3 +1,5 @@
+const createHash = require('create-hash');
+
 class CryptoUtil {
   // Constructor
   constructor() {
@@ -43,5 +45,9 @@ class CryptoUtil {
   static trimHex(hex) {
     if (hex.slice(0, 2) == '0x') hex = hex.slice(2);
     return hex;
+  }
+
+  static sha256(msg) {
+    return createHash('sha256').update(msg).digest();
   }
 }

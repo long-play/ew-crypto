@@ -1,7 +1,6 @@
 const BN = require('bn.js');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
-const createHash = require('create-hash');
 
 class WCrypto {
   constructor() {
@@ -15,8 +14,8 @@ class WCrypto {
     const publicKeyTo = ec.keyFromPublic(pubKeyTo, 'hex');
 
     const Px = privateKeyFrom.derive(publicKeyTo.pub).toString('hex');
-    const hash = this._sha256(Px);
-    const iv = this._sha256(hash).toString('hex').slice(-24);
+    const hash = CryptoUtil.sha256(Px);
+    const iv = CryptoUtil.sha256(hash).toString('hex').slice(-24);
     return this._aesEncrypt(msg, hash.toString('hex'), iv, note);
   }
 
@@ -28,9 +27,9 @@ class WCrypto {
     const publicKeyFrom = ec.keyFromPublic(pubKeyFrom, 'hex');
 
     const Px = privateKeyTo.derive(publicKeyFrom.pub).toString('hex');
-    const hash = this._sha256(Px);
+    const hash = CryptoUtil.sha256(Px);
     if (iv === null) {
-      iv = this._sha256(hash).toString('hex').slice(-24);
+      iv = CryptoUtil.sha256(hash).toString('hex').slice(-24);
     }
     return this._aesDecrypt(msg, hash.toString('hex'), iv, note);
   }
@@ -54,9 +53,5 @@ class WCrypto {
       return Promise.resolve(decrypted);
     });
     return promise;
-  }
-
-  _sha256(msg) {
-    return createHash('sha256').update(msg).digest();
   }
 }
